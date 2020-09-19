@@ -4,32 +4,35 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public float baseSpeed = 10f;
-    public float lookAtSpeed = 0.5f;
-
-    [Space]
+    public EnemyType enemyType;
     public float timeBeforeDestroyAfterDeath = 2f;
 
-    private Transform _target;
     public Damageable Damageable { get; private set; }
+    public EnemyManager EnemySpawner { get; set; }
+
+    private Transform _target;
+    private Collider _collider;
+    private Boid _boid;
 
     private void Start()
     {
         _target = FindObjectOfType<Player>().transform;
         Damageable = GetComponent<Damageable>();
+        _collider = GetComponentInChildren<Collider>();
 
         Damageable.Death += Damageable_Death;
+
+        // register boid to BoidManager
+        _boid = GetComponent<Boid>();
+        BoidManager.Instance.RegisterBoid(_boid, enemyType);
     }
 
     private void Damageable_Death()
     {
-        Destroy(gameObject, timeBeforeDestroyAfterDeath);
-    }
+        _collider.enabled = false;
 
-    private void Update()
-    {
-        Vector3 lookTargetDir = _target.position - transform.position;
-        //lookTargetDir.y = 0.0f;
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(lookTargetDir), Time.time * lookAtSpeed);
+        EnemySpawner.RemoveEnemy(this);
+
+        Destroy(gameObject, timeBeforeDestroyAfterDeath);
     }
 }

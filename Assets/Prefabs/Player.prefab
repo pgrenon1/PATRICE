@@ -222,9 +222,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b30e5afd33e0296409b58a2cab669257, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalSpeed: 25
+  normalSpeed: 45
   stoppingPower: 1
-  accelerationSpeed: 45
+  accelerationSpeed: 120
   cameraPosition: {fileID: 7323345192451816960}
   mainCamera: {fileID: 7323345191890334983}
   spaceshipRoot: {fileID: 7323345192835891839}
@@ -264,7 +264,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 5922190052892801950, guid: 60d1c78d22bf1e744bfeab34ce3b4cd0,
     type: 3}
   projectileOrigin: {fileID: 7323345192929698499}
-  projectileSpeed: 55
+  projectileSpeed: 250
   minTimeBetweenShots: 0.2
   layerMask:
     serializedVersion: 2

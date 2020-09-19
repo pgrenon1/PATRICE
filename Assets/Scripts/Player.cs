@@ -18,8 +18,9 @@ public class Player : MonoBehaviour
     public Weapon weapon;
 
     public Damageable Damageable { get; private set;}
+    public float Speed { get; private set; }
 
-    private float _speed;
+    private Vector3 _lastPosition;
     private Rigidbody _rigidBody;
     private Quaternion _lookRotation;
     private float _rotationZ = 0;
@@ -44,7 +45,7 @@ public class Player : MonoBehaviour
 
     private void Damageable_Death()
     {
-        _speed = 0;
+        Speed = 0;
         _rigidBody.isKinematic = true;
 
         GameManager.Instance.GameOver();
@@ -98,15 +99,15 @@ public class Player : MonoBehaviour
     private void UpdateRotation()
     {
         //Rotation
-        float rotationZTmp = 0;
-        if (Input.GetKey(KeyCode.A))
-        {
-            rotationZTmp = 1;
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-            rotationZTmp = -1;
-        }
+        float rotationZTmp = Input.GetAxis("RightHorizontal");
+        //if (Input.GetKey(KeyCode.A))
+        //{
+        //    rotationZTmp = 1;
+        //}
+        //else if (Input.GetKey(KeyCode.D))
+        //{
+        //    rotationZTmp = -1;
+        //}
 
         _xSmooth = Mathf.Lerp(_xSmooth, Input.GetAxis("Horizontal") * rotationSpeed, Time.deltaTime * cameraSmooth);
         _YSmooth = Mathf.Lerp(_YSmooth, Input.GetAxis("Vertical") * rotationSpeed, Time.deltaTime * cameraSmooth);
@@ -131,26 +132,39 @@ public class Player : MonoBehaviour
     private void UpdateMovement()
     {
         //Set moveDirection to the vertical axis (up and down keys) * speed
-        Vector3 moveDirection = new Vector3(0, 0, _speed);
+        Vector3 moveDirection = new Vector3(0, 0, Speed);
         //Transform the vector3 to local space
         moveDirection = transform.TransformDirection(moveDirection);
         //Set the velocity, so you can move
         _rigidBody.velocity = new Vector3(moveDirection.x, moveDirection.y, moveDirection.z);
+
+        _lastPosition = transform.position;
     }
 
     private void UpdateAcceleration()
     {
-        if (Input.GetButton("Fire1"))
+        if (Input.GetAxis("L2") > 0f) // square
         {
-            _speed = Mathf.Lerp(_speed, accelerationSpeed, Time.deltaTime * 3);
+            Speed = Mathf.Lerp(Speed, accelerationSpeed, Time.deltaTime * 3);
         }
-        else if (Input.GetButton("Fire2"))
-        {
-            _speed = Mathf.Lerp(_speed, normalSpeed, Time.deltaTime * 10);
-        }
+        //else if (Input.GetButton("Fire2")) // x
+        //{
+        //    Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
+        //}
         else
         {
-            _speed = Mathf.Lerp(_speed, 0, Time.deltaTime * stoppingPower);
+            Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
         }
+
+
+        //else if ()
+        //{
+        //    Speed = Mathf.Lerp(Speed, 0, Time.deltaTime * stoppingPower);
+        //}
+    }
+
+    public Vector3 GetVelocity()
+    {
+        return transform.position - _lastPosition;
     }
 }
