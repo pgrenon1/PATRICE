@@ -1,18 +1,20 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    public EnemyType enemyType;
     public float timeBeforeDestroyAfterDeath = 2f;
+    public DimensionDependantVisuals dimensionDependantVisualsOn;
+    public DimensionDependantVisuals dimensionDependantVisualsOff;
 
+    public EnemyType EnemyType { get; set; }
     public Damageable Damageable { get; private set; }
     public EnemyManager EnemySpawner { get; set; }
+    public Dimension OriginDimension { get; set; }
+    public Boid Boid { get; private set; }
 
     private Transform _target;
     private Collider _collider;
-    private Boid _boid;
 
     private void Start()
     {
@@ -23,13 +25,37 @@ public class Enemy : MonoBehaviour
         Damageable.Death += Damageable_Death;
 
         // register boid to BoidManager
-        _boid = GetComponent<Boid>();
-        BoidManager.Instance.RegisterBoid(_boid, enemyType);
+        Boid = GetComponent<Boid>();
+        BoidManager.Instance.RegisterBoid(Boid, EnemyType, _target);
+    }
+
+    private void Update()
+    {
+        UpdateVisuals();
+    }
+
+    private void UpdateVisuals()
+    {
+        bool isOn = IsOnOriginDimension();
+
+        _collider.enabled = isOn;
+
+        dimensionDependantVisualsOn.fireVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Fire && isOn);
+        dimensionDependantVisualsOn.iceVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Ice && isOn);
+
+        dimensionDependantVisualsOff.fireVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Ice && !isOn);
+        dimensionDependantVisualsOff.iceVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Fire && !isOn);
+    }
+
+    public bool IsOnOriginDimension()
+    {
+        return GameManager.Instance.ActiveDimension == OriginDimension;
     }
 
     private void Damageable_Death()
     {
         _collider.enabled = false;
+        Damageable.enabled = false;
 
         EnemySpawner.RemoveEnemy(this);
 

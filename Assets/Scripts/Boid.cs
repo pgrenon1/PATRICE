@@ -28,8 +28,11 @@ public class Boid : MonoBehaviour {
     Material material;
     Transform cachedTransform;
     Transform target;
+    public Enemy Enemy { get; set; }
+    public int DimensionInt { get; set; }
 
     void Awake () {
+        Enemy = GetComponent<Enemy>();
         material = transform.GetComponentInChildren<MeshRenderer>().material;
         cachedTransform = transform;
     }
@@ -73,7 +76,7 @@ public class Boid : MonoBehaviour {
             acceleration += seperationForce;
         }
 
-        if (IsHeadingForCollision ()) {
+        if (IsHeadingForCollision()) {
             Vector3 collisionAvoidDir = ObstacleRays ();
             Vector3 collisionAvoidForce = SteerTowards (collisionAvoidDir) * settings.avoidCollisionWeight;
             acceleration += collisionAvoidForce;

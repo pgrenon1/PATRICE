@@ -15,16 +15,15 @@ public class BoidManager : SingletonMonoBehaviour<BoidManager>
     {
         BoidSettings boidSettings = EnemyManager.Instance.enemySettings[enemyType].boidSettings;
 
+        if (!Boids.ContainsKey(enemyType))
+        {
+            Boids.Add(enemyType, new List<Boid>());
+        }
+
+        Boids[enemyType].Add(boid);
+
         boid.Initialize(boidSettings, target);
     }
-
-    //private void Start () {
-    //    boids = FindObjectsOfType<Boid>();
-    //    foreach (Boid b in boids)
-    //    {
-    //        b.Initialize(settings, FindObjectOfType<Player>().transform);
-    //    }
-    //}
 
     private void Update () 
     {
@@ -49,6 +48,7 @@ public class BoidManager : SingletonMonoBehaviour<BoidManager>
         {
             boidData[i].position = boids[i].position;
             boidData[i].direction = boids[i].forward;
+            boidData[i].dimension = (int)boids[i].Enemy.OriginDimension;
         }
 
         var boidBuffer = new ComputeBuffer(numBoids, BoidData.Size);
@@ -78,9 +78,18 @@ public class BoidManager : SingletonMonoBehaviour<BoidManager>
         
     }
 
+    public void RemoveBoid(Boid boid, EnemyType enemyType)
+    {
+        if (Boids[enemyType].Contains(boid))
+        {
+            Boids[enemyType].Remove(boid);
+        }
+    }
+
     public struct BoidData {
         public Vector3 position;
         public Vector3 direction;
+        public int dimension;
 
         public Vector3 flockHeading;
         public Vector3 flockCentre;
@@ -89,7 +98,7 @@ public class BoidManager : SingletonMonoBehaviour<BoidManager>
 
         public static int Size {
             get {
-                return sizeof (float) * 3 * 5 + sizeof (int);
+                return sizeof (float) * 3 * 5 + sizeof (int) * 2;
             }
         }
     }

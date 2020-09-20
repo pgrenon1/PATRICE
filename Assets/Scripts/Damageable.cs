@@ -9,6 +9,7 @@ public class Damageable : MonoBehaviour
 
     public GameObject visualsParent;
     public GameObject deathFX;
+    public float deathFXScale = 3f;
 
     private float _currentHealth;
     public float CurrentHealth
@@ -62,7 +63,7 @@ public class Damageable : MonoBehaviour
     {
         HideVisuals();
 
-        Utility.SpawnVFX(deathFX, transform.position, transform.rotation);
+        Utility.SpawnVFX(deathFX, transform.position, transform.rotation, deathFXScale);
 
         IsDead = true;
 

@@ -6,6 +6,7 @@ public class Projectile : MonoBehaviour
 {
     public GameObject visualsParent;
     public GameObject hitEffectPrefab;
+    public float hitEffectScale = 3f;
 
     private int _damage;
     private Vector3 _lastPosition;
@@ -62,7 +63,7 @@ public class Projectile : MonoBehaviour
             damageable.ApplyDamage(_damage);
         }
 
-        Utility.SpawnVFX(hitEffectPrefab, hitPoint, Quaternion.identity);
+        Utility.SpawnVFX(hitEffectPrefab, hitPoint, Quaternion.identity, hitEffectScale);
 
         if (visualsParent)
             visualsParent.SetActive(false);

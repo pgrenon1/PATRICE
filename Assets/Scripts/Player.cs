@@ -1,11 +1,21 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-
 public class Player : MonoBehaviour
 {
+    public DimensionDependantVisuals visualsParent;
+
+    [Space]
+    public float dimensionSwitchCooldown;
+
+    [Space]
+    public float boostDuration;
+    public float boostCooldown;
+    public DimensionDependantVisuals boostParticlesParents;
+
     public float normalSpeed = 25f;
     public float stoppingPower = 1f;
     public float accelerationSpeed = 45f;
@@ -15,18 +25,29 @@ public class Player : MonoBehaviour
     public float rotationSpeed = 2.0f;
     public float cameraSmooth = 4f;
     public RectTransform crosshairTexture;
-    public Weapon weapon;
+
+    [Space]
+    public float switchWeaponDimensionStickyTime = 0.2f;
+    public Weapon fireWeapon;
+    public Weapon iceWeapon;
 
     public Damageable Damageable { get; private set;}
     public float Speed { get; private set; }
 
-    private Vector3 _lastPosition;
+    private Dimension _weaponDimension;
     private Rigidbody _rigidBody;
     private Quaternion _lookRotation;
     private float _rotationZ = 0;
     private float _xSmooth = 0;
     private float _YSmooth = 0;
     private Vector3 _defaultRotation;
+    private float _dimensionSwitchCooldownTimer;
+    private bool _isBoosting = false;
+    private float _boostTimer;
+    private float _boostCooldownTimer;
+    private bool _boostIsInCooldown;
+    private bool _isDimensionSwitchOnCooldown;
+    private float _switchWeaponDimensionStickyTimer;
 
     private void Start()
     {
@@ -41,6 +62,13 @@ public class Player : MonoBehaviour
         Damageable = GetComponent<Damageable>();
 
         Damageable.Death += Damageable_Death;
+
+        GameManager.Instance.DimensionSwitched += Instance_DimensionSwitched;
+    }
+
+    private void Instance_DimensionSwitched(Dimension newActiveDimension)
+    {
+        visualsParent.SwitchVisuals(newActiveDimension);
     }
 
     private void Damageable_Death()
@@ -64,6 +92,63 @@ public class Player : MonoBehaviour
         UpdateShoot();
 
         UpdateAcceleration();
+
+        UpdateDimensionSwitch();
+
+        UpdateWeaponDimensionSwitch();
+
+        UpdateBoost();
+    }
+
+    private void UpdateWeaponDimensionSwitch()
+    {
+        if (Input.GetButton("Jump") && _switchWeaponDimensionStickyTimer <= 0)
+        {
+            SwitchWeaponDimension();
+
+            _switchWeaponDimensionStickyTimer = switchWeaponDimensionStickyTime;
+        }
+
+        if (_switchWeaponDimensionStickyTimer > 0)
+        {
+            _switchWeaponDimensionStickyTimer -= Time.deltaTime;
+        }
+    }
+
+    private void SwitchWeaponDimension()
+    {
+        if (_weaponDimension == Dimension.Ice)
+        {
+            _weaponDimension = Dimension.Fire;
+        }
+        else if (_weaponDimension == Dimension.Fire)
+        {
+            _weaponDimension = Dimension.Ice;
+        }
+    }
+
+    private void UpdateDimensionSwitch()
+    {
+        UpdateDimensionSwitchCooldown();
+
+        if (Input.GetButton("L1") && Input.GetButton("R1") && !_isDimensionSwitchOnCooldown)
+        {
+            GameManager.Instance.SwitchDimension();
+
+            _isDimensionSwitchOnCooldown = true;
+            _dimensionSwitchCooldownTimer = dimensionSwitchCooldown;
+        }
+    }
+
+    private void UpdateDimensionSwitchCooldown()
+    {
+        if (_dimensionSwitchCooldownTimer > 0)
+        {
+            _dimensionSwitchCooldownTimer -= Time.deltaTime;
+
+            if (_dimensionSwitchCooldownTimer <= 0)
+            _isDimensionSwitchOnCooldown = false;
+        }
     }
 
     private void UpdateShoot()
@@ -72,7 +157,10 @@ public class Player : MonoBehaviour
 
         if (r2Value != -1)
         {
-            weapon.TryShoot();
+            if (_weaponDimension == Dimension.Fire)
+                fireWeapon.TryShoot();
+            else
+                iceWeapon.TryShoot();
         }
     }
 
@@ -137,34 +225,86 @@ public class Player : MonoBehaviour
         moveDirection = transform.TransformDirection(moveDirection);
         //Set the velocity, so you can move
         _rigidBody.velocity = new Vector3(moveDirection.x, moveDirection.y, moveDirection.z);
+    }
 
-        _lastPosition = transform.position;
+    private void UpdateBoost()
+    {
+        boostParticlesParents.GetActiveVisuals().SetActive(_isBoosting);
+
+        if (_isBoosting)
+        {
+            Speed = Mathf.Lerp(Speed, accelerationSpeed, Time.deltaTime * 3);
+
+            _boostTimer += Time.deltaTime;
+
+            if (_boostTimer >= boostDuration)
+            {
+                _isBoosting = false;
+                _boostIsInCooldown = true;
+            }
+        }
+        else if (_boostIsInCooldown)
+        {
+            _boostCooldownTimer -= Time.deltaTime;
+
+            if (_boostCooldownTimer <= 0)
+            {
+                _boostIsInCooldown = false;
+            }
+        }
     }
 
     private void UpdateAcceleration()
     {
-        if (Input.GetAxis("L2") > 0f) // square
+        if (Input.GetButton("JR") && !_isBoosting && !_boostIsInCooldown)
         {
-            Speed = Mathf.Lerp(Speed, accelerationSpeed, Time.deltaTime * 3);
+            _isBoosting = true;
+
+            _boostTimer = 0;
+            _boostCooldownTimer = boostCooldown;
         }
-        //else if (Input.GetButton("Fire2")) // x
-        //{
-        //    Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
-        //}
         else
         {
             Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
         }
-
-
-        //else if ()
-        //{
-        //    Speed = Mathf.Lerp(Speed, 0, Time.deltaTime * stoppingPower);
-        //}
     }
+}
 
-    public Vector3 GetVelocity()
+[Serializable]
+public class DimensionDependantVisuals
+{
+    public GameObject fireVisuals;
+    public GameObject iceVisuals;
+
+    public void SwitchVisuals(Dimension dimension)
     {
-        return transform.position - _lastPosition;
+        if (dimension == Dimension.Fire)
+        {
+            fireVisuals.SetActive(true);
+            iceVisuals.SetActive(false);
+        }
+        else if (dimension == Dimension.Ice)
+        {
+            fireVisuals.SetActive(false);
+            iceVisuals.SetActive(true);
+        }
     }
+
+    public GameObject GetActiveVisuals()
+    {
+        if (GameManager.Instance.ActiveDimension == Dimension.Fire)
+        {
+            return fireVisuals;
+        }
+        else // if (GameManager.Instance.ActiveDimension == Dimension.Ice)
+        {
+            return iceVisuals;
+        }
+    }
+}
+
+public enum Dimension
+{
+    Fire,
+    Ice
 }

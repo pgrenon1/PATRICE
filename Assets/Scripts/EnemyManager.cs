@@ -7,7 +7,7 @@ using UnityEngine;
 
 public enum EnemyType
 {
-    Evader
+    Wanderer = 0,
 }
 
 [Serializable]
@@ -64,7 +64,8 @@ public class EnemyManager : OdinserializedSingletonBehaviour<EnemyManager>
 
         Enemy enemy = Instantiate(enemySettings[enemyType].enemyPrefab, position, Quaternion.identity);
         enemy.EnemySpawner = this;
-        enemy.enemyType = enemyType;
+        enemy.OriginDimension = (Dimension)UnityEngine.Random.Range(0, Enum.GetNames(typeof(Dimension)).Length);
+        enemy.EnemyType = enemyType;
 
         RuntimeEnemiesByType[enemyType].Add(enemy);
         EnemiesSpawnedByType[enemyType]++;
@@ -72,8 +73,10 @@ public class EnemyManager : OdinserializedSingletonBehaviour<EnemyManager>
 
     public void RemoveEnemy(Enemy enemyToRemove)
     {
-        if (RuntimeEnemiesByType[enemyToRemove.enemyType].Contains(enemyToRemove))
-            RuntimeEnemiesByType[enemyToRemove.enemyType].Remove(enemyToRemove);
+        BoidManager.Instance.RemoveBoid(enemyToRemove.Boid, enemyToRemove.EnemyType);
+
+        if (RuntimeEnemiesByType[enemyToRemove.EnemyType].Contains(enemyToRemove))
+            RuntimeEnemiesByType[enemyToRemove.EnemyType].Remove(enemyToRemove);
     }
 }
 
