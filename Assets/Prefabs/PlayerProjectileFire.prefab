@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1815913499085032466}
   - component: {fileID: 5922190052892801950}
-  m_Layer: 0
+  - component: {fileID: 3131280963159349388}
+  m_Layer: 8
   m_Name: PlayerProjectileFire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -47,7 +48,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualsParent: {fileID: 1901656287543427506}
   hitEffectPrefab: {fileID: 134664, guid: 5b2df17ecc30d7b44909bcc7d4a4febd, type: 3}
-  hitEffectScale: 3
+  hitEffectScale: 10
+--- !u!54 &3131280963159349388
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630720749724094763}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &1901656287543427506
 GameObject:
   m_ObjectHideFlags: 0
@@ -57,7 +74,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5447224375741257466}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,13 +106,13 @@ GameObject:
   m_Component:
   - component: {fileID: 4807166660741682855}
   - component: {fileID: 7349895335614987277}
-  m_Layer: 0
-  m_Name: Collider
+  m_Layer: 8
+  m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4807166660741682855
 Transform:
   m_ObjectHideFlags: 0
@@ -130,9 +147,17 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 5447224375741257466}
     m_Modifications:
+    - target: {fileID: 102222, guid: 7cf0c810c7ede2c42a2e71ac3c0e257d, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 169190, guid: 7cf0c810c7ede2c42a2e71ac3c0e257d, type: 3}
       propertyPath: m_Name
       value: LaserMissileRed
+      objectReference: {fileID: 0}
+    - target: {fileID: 169190, guid: 7cf0c810c7ede2c42a2e71ac3c0e257d, type: 3}
+      propertyPath: m_Layer
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 474898, guid: 7cf0c810c7ede2c42a2e71ac3c0e257d, type: 3}
       propertyPath: m_LocalPosition.x

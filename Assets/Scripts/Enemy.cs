@@ -38,7 +38,7 @@ public class Enemy : MonoBehaviour
     {
         bool isOn = IsOnOriginDimension();
 
-        _collider.enabled = isOn;
+        _collider.enabled = isOn && !Damageable.IsDead;
 
         dimensionDependantVisualsOn.fireVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Fire && isOn);
         dimensionDependantVisualsOn.iceVisuals.SetActive(GameManager.Instance.ActiveDimension == Dimension.Ice && isOn);
@@ -55,7 +55,6 @@ public class Enemy : MonoBehaviour
     private void Damageable_Death()
     {
         _collider.enabled = false;
-        Damageable.enabled = false;
 
         EnemySpawner.RemoveEnemy(this);
 

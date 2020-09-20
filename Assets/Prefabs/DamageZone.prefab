@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 2895253942672254027}
   - component: {fileID: 8335546315969550030}
   - component: {fileID: 4751879121740179874}
+  - component: {fileID: 1615892236448985145}
   m_Layer: 0
   m_Name: DamageZone
   m_TagString: Untagged
@@ -29,8 +30,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 3892099751812325986}
   - {fileID: 2452053333945007188}
+  - {fileID: 3892099751812325986}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -57,6 +58,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 784dee712fd230043a8a8aa10479488e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1615892236448985145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2895253942672254026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12cad5f2a39866542971e009e3891752, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   dimensionDependantVisuals:
@@ -92,7 +105,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 2895253942672254027}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4106642311084744447
 MeshFilter:
@@ -171,7 +184,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 2895253942672254027}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8748107801251561684
 MeshFilter:

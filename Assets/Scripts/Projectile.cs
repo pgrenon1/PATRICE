@@ -14,22 +14,25 @@ public class Projectile : MonoBehaviour
     private Vector3 _direction;
     private float _speed;
     private LayerMask _layerMask;
+    private Collider _collider;
 
     private void Start()
     {
+        _collider = GetComponentInChildren<Collider>();
+
         Despawn();
     }
 
-    private void Update()
-    {
-        RaycastHit hitInfo;
-        if (_isActive && Physics.Linecast(_lastPosition, transform.position, out hitInfo, _layerMask))
-        {
-            Hit(hitInfo.point, hitInfo.collider);
-        }
+    //private void Update()
+    //{
+    //    RaycastHit hitInfo;
+    //    if (_isActive && Physics.Linecast(_lastPosition, transform.position, out hitInfo, _layerMask))
+    //    {
+    //        Hit(hitInfo.point, hitInfo.collider);
+    //    }
 
-        _lastPosition = transform.position;
-    }
+    //    _lastPosition = transform.position;
+    //}
 
     private void LateUpdate()
     {
@@ -69,6 +72,16 @@ public class Projectile : MonoBehaviour
             visualsParent.SetActive(false);
 
         _isActive = false;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        _collider.enabled = false;
+
+        Vector3 hitPoint = other.ClosestPoint(transform.position);
+
+        Hit(hitPoint, other);
+
     }
 
     //private void OnTriggerEnter(Collider other)
