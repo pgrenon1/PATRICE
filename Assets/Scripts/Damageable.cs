@@ -21,11 +21,6 @@ public class Damageable : MonoBehaviour
         set
         {
             _currentHealth = value;
-
-            if (_currentHealth <= 0)
-            {
-                Die();
-            }
         }
     }
 
@@ -34,7 +29,7 @@ public class Damageable : MonoBehaviour
     public delegate void OnDamageDealt(float damageValue);
     public event OnDamageDealt DamageDealt;
 
-    public delegate void OnDeath();
+    public delegate void OnDeath(bool onDimension = false, bool killedByPlayer = false);
     public event OnDeath Death;
 
     private bool _isPlayer = false;
@@ -46,7 +41,7 @@ public class Damageable : MonoBehaviour
         CurrentHealth = startingHealth;
     }
 
-    public void ApplyDamage(float damageValue)
+    public void ApplyDamage(float damageValue, bool onDimension = false, bool isPlayerDamage = false)
     {
         if (GameManager.Instance.IsGodMode && this.IsPlayer())
             return;
@@ -55,11 +50,16 @@ public class Damageable : MonoBehaviour
 
         CurrentHealth -= damageValue;
 
+        if (_currentHealth <= 0)
+        {
+            Die(onDimension, isPlayerDamage);
+        }
+
         if (DamageDealt != null)
             DamageDealt(damageValue);
     }
 
-    public void Die()
+    public void Die(bool onDimension = false, bool isPlayerDamage = false)
     {
         HideVisuals();
 
@@ -68,7 +68,7 @@ public class Damageable : MonoBehaviour
         IsDead = true;
 
         if (Death != null)
-            Death();
+            Death(onDimension, isPlayerDamage);
     }
 
     private void HideVisuals()

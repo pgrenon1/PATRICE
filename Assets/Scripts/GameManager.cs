@@ -6,20 +6,26 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : SingletonMonoBehaviour<GameManager>
 {
-    public Dimension ActiveDimension { get; set; }
-    public bool IsGodMode { get; private set; }
-
     public float delayBeforeEffectiveSwitch = 1f;
     public PostProcessEffectData dimensionSwitchEffect;
+
+    public float timePerLevel = 60f;
+
+    public Dimension ActiveDimension { get; set; }
+    public bool IsGodMode { get; private set; }
+    public float LevelTimer { get; private set; }
 
     public delegate void OnSwitchDimension(Dimension newActiveDimension);
     public event OnSwitchDimension DimensionSwitched;
 
-    private Coroutine _postProcessEffectCoroutine;
+    public int Score { get; private set; }
+
     private PostProcessVolume _volume;
 
     private void Start()
     {
+        LevelTimer = timePerLevel;
+
         _volume = gameObject.GetComponentInChildren<PostProcessVolume>();
 
         SwitchDimension(false);
@@ -29,6 +35,31 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
     {
         if (Input.GetKeyDown(KeyCode.F12))
             IsGodMode = !IsGodMode;
+
+        if (Input.GetKeyDown(KeyCode.Return))
+            EnemyManager.Instance.NextLevel();
+
+        if (Input.GetKeyDown(KeyCode.Space))
+            Reset();
+
+        UpdateLevelTimer();
+    }
+
+    private void Reset()
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+    }
+
+    private void UpdateLevelTimer()
+    {
+        LevelTimer -= Time.deltaTime;
+
+        if (LevelTimer <= 0)
+        {
+            EnemyManager.Instance.NextLevel();
+
+            LevelTimer = timePerLevel;
+        }
     }
 
     public void SwitchDimension(bool triggerPostProcessEffect = true)
@@ -55,6 +86,11 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 
         if (DimensionSwitched != null)
             DimensionSwitched(ActiveDimension);
+    }
+
+    public void ScorePoints(int scoreValue)
+    {
+        Score += scoreValue;
     }
 
     public IEnumerator DoEffect(PostProcessEffectData postProcessEffectData, PostProcessVolume volume)

@@ -8,6 +8,8 @@ public class Projectile : MonoBehaviour
     public GameObject hitEffectPrefab;
     public float hitEffectScale = 3f;
 
+    public bool IsPlayerProjectile { get; set; }
+
     private int _damage;
     private Vector3 _lastPosition;
     private bool _isActive;
@@ -15,6 +17,7 @@ public class Projectile : MonoBehaviour
     private float _speed;
     private LayerMask _layerMask;
     private Collider _collider;
+    private Dimension _dimension;
 
     private void Start()
     {
@@ -40,12 +43,19 @@ public class Projectile : MonoBehaviour
             transform.position = transform.position + _direction.normalized * _speed * Time.deltaTime;
     }
 
-    public void Init(Vector3 direction, float speed, int damage, LayerMask layerMask)
+    public void Init(Vector3 direction, float speed, int damage, LayerMask layerMask, bool isPlayerProjectile, Dimension dimension)
     {
         _direction = direction;
         _speed = speed;
         _damage = damage;
         _layerMask = layerMask;
+        IsPlayerProjectile = isPlayerProjectile;
+        _dimension = dimension;
+
+        if (IsPlayerProjectile && !IsOnOriginDimension())
+        {
+            transform.localScale *= 5f;
+        }
 
         _isActive = true;
     }
@@ -59,11 +69,16 @@ public class Projectile : MonoBehaviour
     {
         Damageable damageable = collider.GetComponentInParent<Damageable>();
 
-        //Debug.Log(collider.gameObject, collider.gameObject);
-
         if (damageable != null)
         {
-            damageable.ApplyDamage(_damage);
+            bool onDimension = false;
+            Enemy enemy = damageable.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                onDimension = enemy.OriginDimension == _dimension;
+            }
+
+            damageable.ApplyDamage(_damage, onDimension, IsPlayerProjectile);
         }
 
         Utility.SpawnVFX(hitEffectPrefab, hitPoint, Quaternion.identity, hitEffectScale);
@@ -81,11 +96,10 @@ public class Projectile : MonoBehaviour
         Vector3 hitPoint = other.ClosestPoint(transform.position);
 
         Hit(hitPoint, other);
-
     }
 
-    //private void OnTriggerEnter(Collider other)
-    //{
-    //    other.TryDamage(_damage)
-    //}
+    public bool IsOnOriginDimension()
+    {
+        return GameManager.Instance.ActiveDimension == _dimension;
+    }
 }

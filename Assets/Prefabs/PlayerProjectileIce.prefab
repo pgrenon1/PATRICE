@@ -61,7 +61,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualsParent: {fileID: 1901656287543427506}
   hitEffectPrefab: {fileID: 102984, guid: 63782bd2b5a23754181adaf65653088a, type: 3}
-  hitEffectScale: 3
+  hitEffectScale: 10
 --- !u!54 &2704818390462202780
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -120,12 +120,12 @@ GameObject:
   - component: {fileID: 4807166660741682855}
   - component: {fileID: 7349895335614987277}
   m_Layer: 9
-  m_Name: Collider
+  m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4807166660741682855
 Transform:
   m_ObjectHideFlags: 0

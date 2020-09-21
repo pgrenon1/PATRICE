@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour
@@ -25,6 +27,11 @@ public class Player : MonoBehaviour
     public float rotationSpeed = 2.0f;
     public float cameraSmooth = 4f;
     public RectTransform crosshairTexture;
+    public Image fireWeaponFill;
+    public Image iceWeaponFill;
+    public Image levelTimerFill;
+    public TextMeshProUGUI scoreText;
+    public Image switchDimensionFill;
 
     [Space]
     public float switchWeaponDimensionStickyTime = 0.2f;
@@ -48,9 +55,11 @@ public class Player : MonoBehaviour
     private bool _boostIsInCooldown;
     private bool _isDimensionSwitchOnCooldown;
     private float _switchWeaponDimensionStickyTimer;
+    private Color _switchDimensionFillColor;
 
     private void Start()
     {
+        _switchDimensionFillColor = switchDimensionFill.color;
         _rigidBody = GetComponent<Rigidbody>();
         _rigidBody.useGravity = false;
         _lookRotation = transform.rotation;
@@ -71,7 +80,7 @@ public class Player : MonoBehaviour
         visualsParent.SwitchVisuals(newActiveDimension);
     }
 
-    private void Damageable_Death()
+    private void Damageable_Death(bool onDimension = false, bool isPlayerDamage = false)
     {
         Speed = 0;
         _rigidBody.isKinematic = true;
@@ -158,9 +167,9 @@ public class Player : MonoBehaviour
         if (r2Value != -1)
         {
             if (_weaponDimension == Dimension.Fire)
-                fireWeapon.TryShoot();
+                fireWeapon.TryShoot(true);
             else
-                iceWeapon.TryShoot();
+                iceWeapon.TryShoot(true);
         }
     }
 
@@ -173,6 +182,40 @@ public class Player : MonoBehaviour
         UpdateRotation();
 
         UpdateCrosshair();
+
+        UpdateLevelTimer();
+
+        UpdateScore();
+
+        UpdateSwitchDimensionFill();
+    }
+
+    private void UpdateSwitchDimensionFill()
+    {
+        float ratio = 1 - _dimensionSwitchCooldownTimer / dimensionSwitchCooldown;
+
+        if (_dimensionSwitchCooldownTimer > 0)
+        {
+            Color red = Color.red;
+            red.a = 0.6f;
+            switchDimensionFill.color = red;
+        }
+        else
+        {
+            switchDimensionFill.color = _switchDimensionFillColor;
+        }
+
+        switchDimensionFill.fillAmount = ratio;
+    }
+
+    private void UpdateScore()
+    {
+        scoreText.text = GameManager.Instance.Score.ToString();
+    }
+
+    private void UpdateLevelTimer()
+    {
+        levelTimerFill.fillAmount = GameManager.Instance.LevelTimer / GameManager.Instance.timePerLevel;
     }
 
     private void UpdateCrosshair()
@@ -182,6 +225,14 @@ public class Player : MonoBehaviour
         {
             crosshairTexture.position = mainCamera.WorldToScreenPoint(transform.position + transform.forward * 100);
         }
+
+        UpdateWeaponUI(fireWeapon, fireWeaponFill);
+        UpdateWeaponUI(iceWeapon, iceWeaponFill);
+    }
+
+    private void UpdateWeaponUI(Weapon weapon, Image fillImage)
+    {
+        fillImage.fillAmount = weapon.Magazine / weapon.magazineSize;
     }
 
     private void UpdateRotation()
@@ -200,7 +251,7 @@ public class Player : MonoBehaviour
         _xSmooth = Mathf.Lerp(_xSmooth, Input.GetAxis("Horizontal") * rotationSpeed, Time.deltaTime * cameraSmooth);
         _YSmooth = Mathf.Lerp(_YSmooth, Input.GetAxis("Vertical") * rotationSpeed, Time.deltaTime * cameraSmooth);
 
-        Quaternion localRotation = Quaternion.Euler(-_YSmooth, _xSmooth, rotationZTmp * rotationSpeed);
+        Quaternion localRotation = Quaternion.Euler(-_YSmooth, _xSmooth, -rotationZTmp * rotationSpeed);
         _lookRotation = _lookRotation * localRotation;
         transform.rotation = _lookRotation;
 
@@ -256,7 +307,7 @@ public class Player : MonoBehaviour
 
     private void UpdateAcceleration()
     {
-        if (Input.GetButton("JR") && !_isBoosting && !_boostIsInCooldown)
+        if ((Input.GetButton("JR") || Input.GetButton("L2")) && !_isBoosting && !_boostIsInCooldown)
         {
             _isBoosting = true;
 
@@ -280,13 +331,13 @@ public class DimensionDependantVisuals
     {
         if (dimension == Dimension.Fire)
         {
-            fireVisuals.SetActive(true);
-            iceVisuals.SetActive(false);
+            fireVisuals?.SetActive(true);
+            iceVisuals?.SetActive(false);
         }
         else if (dimension == Dimension.Ice)
         {
-            fireVisuals.SetActive(false);
-            iceVisuals.SetActive(true);
+            fireVisuals?.SetActive(false);
+            iceVisuals?.SetActive(true);
         }
     }
 

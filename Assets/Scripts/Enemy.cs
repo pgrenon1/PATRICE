@@ -12,6 +12,7 @@ public class Enemy : MonoBehaviour
     public EnemyManager EnemySpawner { get; set; }
     public Dimension OriginDimension { get; set; }
     public Boid Boid { get; private set; }
+    public int ScoreValue { get; set; }
 
     private Transform _target;
     private Collider _collider;
@@ -52,12 +53,24 @@ public class Enemy : MonoBehaviour
         return GameManager.Instance.ActiveDimension == OriginDimension;
     }
 
-    private void Damageable_Death()
+    private void Damageable_Death(bool onDimension = false, bool isPlayerDamage = false)
     {
-        _collider.enabled = false;
+        if (!onDimension)
+            ScoreValue *= 2;
+
+        GameManager.Instance.ScorePoints(ScoreValue);
 
         EnemySpawner.RemoveEnemy(this);
 
         Destroy(gameObject, timeBeforeDestroyAfterDeath);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Player player = other.gameObject.GetComponentInParent<Player>();
+        if (player)
+        {
+            player.Damageable.ApplyDamage(Mathf.Infinity);
+        }
     }
 }
