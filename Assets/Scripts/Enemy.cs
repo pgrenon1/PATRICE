@@ -20,7 +20,6 @@ public class Enemy : MonoBehaviour
     private Collider _collider;
     private float _immuneToBorderTimer;
 
-
     private void Start()
     {
         _target = GameManager.Instance.Player.transform;
