@@ -26,7 +26,7 @@ public static class Extensions
 
         if (damageable != null)
         {
-            damageable.ApplyDamage(damage);
+            damageable.ApplyDamage(new Damage(damage));
             return true;
         }
 

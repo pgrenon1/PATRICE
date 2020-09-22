@@ -14,8 +14,8 @@ TagManager:
   - UI
   - 
   - 
-  - Fire
-  - Ice
+  - PlayerProjectiles
+  - 
   - Player
   - PostProcessing
   - 

@@ -3,6 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class Damage
+{
+    public float Value { get; set; }
+    public bool OnDimension { get; set; }
+    public bool IsPlayerDamage { get; set; }
+
+    public Damage(float value)
+    {
+        Value = value;
+    }
+
+    public Damage(float value, bool onDdimension, bool isPlayerDamage)
+    {
+        Value = value;
+        OnDimension = onDdimension;
+        IsPlayerDamage = isPlayerDamage;
+    }
+}
+
 public class Damageable : MonoBehaviour
 {
     public int startingHealth;
@@ -26,10 +45,10 @@ public class Damageable : MonoBehaviour
 
     public bool IsDead { get; private set; }
 
-    public delegate void OnDamageDealt(float damageValue);
+    public delegate void OnDamageDealt(Damage damage);
     public event OnDamageDealt DamageDealt;
 
-    public delegate void OnDeath(bool onDimension = false, bool killedByPlayer = false);
+    public delegate void OnDeath(Damage damage);
     public event OnDeath Death;
 
     private bool _isPlayer = false;
@@ -41,25 +60,25 @@ public class Damageable : MonoBehaviour
         CurrentHealth = startingHealth;
     }
 
-    public void ApplyDamage(float damageValue, bool onDimension = false, bool isPlayerDamage = false)
+    public void ApplyDamage(Damage damage)
     {
-        if (GameManager.Instance.IsGodMode && this.IsPlayer())
+        if (GameManager.Instance.IsGodMode && _isPlayer)
             return;
 
-        float damageDealt = Mathf.Min(damageValue, CurrentHealth);
+        float damageDealt = Mathf.Min(damage.Value, CurrentHealth);
 
-        CurrentHealth -= damageValue;
+        CurrentHealth -= damageDealt;
 
         if (_currentHealth <= 0)
         {
-            Die(onDimension, isPlayerDamage);
+            Die(damage);
         }
 
         if (DamageDealt != null)
-            DamageDealt(damageValue);
+            DamageDealt(damage);
     }
 
-    public void Die(bool onDimension = false, bool isPlayerDamage = false)
+    public void Die(Damage damage)
     {
         HideVisuals();
 
@@ -68,7 +87,7 @@ public class Damageable : MonoBehaviour
         IsDead = true;
 
         if (Death != null)
-            Death(onDimension, isPlayerDamage);
+            Death(damage);
     }
 
     private void HideVisuals()

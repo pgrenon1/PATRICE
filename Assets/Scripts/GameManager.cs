@@ -1,12 +1,20 @@
-﻿using System;
+﻿using Sirenix.Serialization;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
-public class GameManager : SingletonMonoBehaviour<GameManager>
+public class GameManager : OdinserializedSingletonBehaviour<GameManager>
 {
+    public GameObject splashScreenParent;
+
+    public Player playerPrefab;
+    [NonSerialized, OdinSerialize]
+    public List<LevelData> levelDatas = new List<LevelData>();
+
     public float delayBeforeEffectiveSwitch = 1f;
+    public AudioSource dimensionSwitchSound;
     public PostProcessEffectData dimensionSwitchEffect;
 
     public float timePerLevel = 60f;
@@ -14,38 +22,144 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
     public Dimension ActiveDimension { get; set; }
     public bool IsGodMode { get; private set; }
     public float LevelTimer { get; private set; }
+    public int Score { get; private set; }
+    public bool GameIsStarted { get; private set; }
+    public int LevelIndex { get; private set; }
+    public Player Player { get; private set; }
+    public bool IsPaused { get; private set; }
 
     public delegate void OnSwitchDimension(Dimension newActiveDimension);
     public event OnSwitchDimension DimensionSwitched;
 
-    public int Score { get; private set; }
-
-    private PostProcessVolume _volume;
+    private PostProcessVolume _globalPPVolume;
 
     private void Start()
     {
-        LevelTimer = timePerLevel;
-
-        _volume = gameObject.GetComponentInChildren<PostProcessVolume>();
-
-        SwitchDimension(false);
+        _globalPPVolume = gameObject.GetComponentInChildren<PostProcessVolume>();
     }
 
     private void Update()
+    {
+        if (!GameIsStarted)
+        {
+            UpdateStartGame();
+
+            return;
+        }
+
+        UpdateCheats();
+
+        UpdateLevelTimer();
+
+        UpdateLevelDatas();
+    }
+
+    private void UpdateLevelDatas()
+    {
+        foreach (var levelData in levelDatas)
+        {
+            if (levelData.IsActive)
+                EnemyManager.Instance.UpdateSpawning(levelData);
+        }
+    }
+
+    private void UpdateCheats()
     {
         if (Input.GetKeyDown(KeyCode.F12))
             IsGodMode = !IsGodMode;
 
         if (Input.GetKeyDown(KeyCode.Return))
-            EnemyManager.Instance.NextLevel();
+            NextLevel();
 
         if (Input.GetKeyDown(KeyCode.Space))
             Reset();
-
-        UpdateLevelTimer();
     }
 
-    private void Reset()
+    private void UpdateStartGame()
+    {
+        if (Input.anyKeyDown)
+        {
+            StartGame();
+        }
+    }
+
+    private void StartGame()
+    {
+        LevelTimer = timePerLevel;
+        GameIsStarted = true;
+
+        InitLevelData(levelDatas[0]);
+
+        CreatePlayer();
+
+        StartCoroutine(WaitAndSwitch());
+    }
+
+    private IEnumerator WaitAndSwitch()
+    {
+        yield return 0;
+
+        SwitchDimension(false);
+
+        splashScreenParent.SetActive(false);
+    }
+
+    private void CreatePlayer()
+    {
+        Player = Instantiate(playerPrefab);
+    }
+
+    public void NextLevel()
+    {
+        LevelIndex++;
+
+        LevelData newLevelData = null;
+        if (LevelIndex > levelDatas.Count - 1)
+        {
+            newLevelData = AddLevel(levelDatas[levelDatas.Count - 1]);
+        }
+        else
+        {
+            newLevelData = levelDatas[LevelIndex];
+        }
+
+        InitLevelData(newLevelData);
+    }
+
+    private void InitLevelData(LevelData levelData)
+    {
+        levelData.SpawnedCountByType = new Dictionary<EnemyType, int>();
+
+        foreach (var kvp in levelData.spawningData)
+        {
+            EnemyType enemyType = kvp.Key;
+            levelData.SpawnedCountByType.Add(enemyType, 0);
+        }
+
+        levelData.IsActive = true;
+    }
+
+    public void TogglePause()
+    {
+        Time.timeScale = IsPaused ? 0f : 1f;
+
+        IsPaused = !IsPaused;
+    }
+
+    private LevelData AddLevel(LevelData levelDataToCopy)
+    {
+        foreach (var kvp in levelDataToCopy.spawningData)
+        {
+            levelDataToCopy.spawningData[kvp.Key].enemiesAmount *= 2;
+            levelDataToCopy.spawningData[kvp.Key].maxEnemiesAtSameTime *= 2;
+        }
+
+        levelDatas.Add(levelDataToCopy);
+
+        return levelDataToCopy;
+    }
+
+    public void Reset()
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(0);
     }
@@ -56,7 +170,7 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 
         if (LevelTimer <= 0)
         {
-            EnemyManager.Instance.NextLevel();
+            NextLevel();
 
             LevelTimer = timePerLevel;
         }
@@ -64,6 +178,9 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
 
     public void SwitchDimension(bool triggerPostProcessEffect = true)
     {
+        if (dimensionSwitchSound && triggerPostProcessEffect)
+            dimensionSwitchSound.Play();
+
         StartCoroutine(DoSwitchDimension(triggerPostProcessEffect));
     }
 
@@ -71,7 +188,7 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
     {
         if (triggerPostProcessEffect)
         {
-            StartCoroutine(DoEffect(dimensionSwitchEffect, _volume));
+            StartCoroutine(DoEffect(dimensionSwitchEffect, _globalPPVolume));
             yield return new WaitForSeconds(delayBeforeEffectiveSwitch);
         }
 
@@ -119,15 +236,6 @@ public class GameManager : SingletonMonoBehaviour<GameManager>
             chromaticAberrationSetting.intensity.value = cachedChromaticAberration + postProcessEffectData.chromaticAberrationOverTime.Evaluate(ratio) * postProcessEffectData.chromaticAberrationStrength;
             grainSetting.intensity.value = cachedGrain + postProcessEffectData.grainOverTime.Evaluate(ratio) * postProcessEffectData.grainStrength;
             lensDistortionSetting.intensity.value = cachedLensDistortion + postProcessEffectData.lensDistortionOverTime.Evaluate(ratio) * postProcessEffectData.lensDistortionStrength;
-
-            t += Time.deltaTime;
-            yield return 0;
-        }
-
-        //return to normal
-        t = 0;
-        while (t < 0.5f)
-        {
 
             t += Time.deltaTime;
             yield return 0;

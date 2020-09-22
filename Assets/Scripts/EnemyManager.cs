@@ -43,45 +43,8 @@ public class EnemyManager : OdinserializedSingletonBehaviour<EnemyManager>
     public GameObject spawnVFXPrefab;
 
     public Dictionary<EnemyType, EnemySettings> enemySettings = new Dictionary<EnemyType, EnemySettings>();
-    [NonSerialized, OdinSerialize]
-    public List<LevelData> levelDatas = new List<LevelData>();
 
-    //public Dictionary<EnemyType, List<Enemy>> RuntimeEnemiesByType { get; private set; } = new Dictionary<EnemyType, List<Enemy>>();
-    //public Dictionary<EnemyType, int> SpawnedCountByType { get; private set; } = new Dictionary<EnemyType, int>();
-
-    public int LevelIndex { get; private set; } = 0;
-    //public LevelData CurrentLevelData { get { return levelDatas[LevelIndex]; } }
-    //public List<LevelData> ActiveLevelDatas { get; set; } = new List<LevelData>();
-
-    private void Start()
-    {
-        InitLevelData(levelDatas[0]);
-    }
-
-    private void InitLevelData(LevelData levelData)
-    {
-        levelData.SpawnedCountByType = new Dictionary<EnemyType, int>();
-
-        foreach (var kvp in levelData.spawningData)
-        {
-            EnemyType enemyType = kvp.Key;
-            levelData.SpawnedCountByType.Add(enemyType, 0);
-        }
-
-        levelData.IsActive = true;
-        //ActiveLevelDatas.Add(levelData);
-    }
-
-    private void Update()
-    {
-        foreach (var levelData in levelDatas)
-        {
-            if (levelData.IsActive)
-                UpdateLevelData(levelData);
-        }
-    }
-
-    private void UpdateLevelData(LevelData levelData)
+    public void UpdateSpawning(LevelData levelData)
     {
         foreach (var kvp in levelData.spawningData)
         {
@@ -118,14 +81,14 @@ public class EnemyManager : OdinserializedSingletonBehaviour<EnemyManager>
 
         Enemy enemy = Instantiate(enemySettings[enemyType].enemyPrefab, position, Quaternion.identity);
         enemy.EnemySpawner = this;
-        enemy.ScoreValue = (LevelIndex + 1) * enemySettings[enemyType].scoreValue;
+        enemy.ScoreValue = (GameManager.Instance.LevelIndex + 1) * enemySettings[enemyType].scoreValue;
         enemy.transform.LookAt(Vector3.zero);
         enemy.OriginDimension = (Dimension)UnityEngine.Random.Range(0, Enum.GetNames(typeof(Dimension)).Length);
         enemy.EnemyType = enemyType;
 
         levelData.SpawnedCountByType[enemyType]++;
 
-        var str = "Level " + LevelIndex + "\n";
+        var str = "Level " + GameManager.Instance.LevelIndex + "\n";
         foreach (var kvp in levelData.SpawnedCountByType)
         {
             str += kvp.Key + " : " + kvp.Value + "/" + levelData.spawningData[kvp.Key].enemiesAmount + "\n";
@@ -142,36 +105,6 @@ public class EnemyManager : OdinserializedSingletonBehaviour<EnemyManager>
     public void RemoveEnemy(Enemy enemyToRemove)
     {
         BoidManager.Instance.RemoveBoid(enemyToRemove.Boid, enemyToRemove.EnemyType);
-    }
-
-    public void NextLevel()
-    {
-        LevelIndex++;
-
-        LevelData newLevelData = null;
-        if (LevelIndex > levelDatas.Count - 1)
-        {
-            newLevelData = AddLevel(levelDatas[levelDatas.Count - 1]);
-        }
-        else
-        {
-            newLevelData = levelDatas[LevelIndex];
-        }
-
-        InitLevelData(newLevelData);
-    }
-
-    private LevelData AddLevel(LevelData levelDataToCopy)
-    {
-        foreach (var kvp in levelDataToCopy.spawningData)
-        {
-            levelDataToCopy.spawningData[kvp.Key].enemiesAmount *= 2;
-            levelDataToCopy.spawningData[kvp.Key].maxEnemiesAtSameTime *= 2;
-        }
-
-        levelDatas.Add(levelDataToCopy);
-
-        return levelDataToCopy;
     }
 }
 

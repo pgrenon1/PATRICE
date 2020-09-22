@@ -78,7 +78,7 @@ public class Projectile : MonoBehaviour
                 onDimension = enemy.OriginDimension == _dimension;
             }
 
-            damageable.ApplyDamage(_damage, onDimension, IsPlayerProjectile);
+            damageable.ApplyDamage(new Damage(_damage, onDimension, IsPlayerProjectile));
         }
 
         Utility.SpawnVFX(hitEffectPrefab, hitPoint, Quaternion.identity, hitEffectScale);

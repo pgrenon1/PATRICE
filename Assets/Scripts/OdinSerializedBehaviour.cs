@@ -1,12 +1,18 @@
 ﻿using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 [ShowOdinSerializedPropertiesInInspector]
-public class OdinSerializedBehaviour : MonoBehaviour, ISerializationCallbackReceiver
+public class OdinSerializedBehaviour : MonoBehaviour, ISerializationCallbackReceiver, ISupportsPrefabSerialization
 {
+    #region Odin serialization
     [SerializeField, HideInInspector]
-    private SerializationData serializationData;
+    protected SerializationData serializationData;
+
+    SerializationData ISupportsPrefabSerialization.SerializationData { get { return this.serializationData; } set { this.serializationData = value; } }
 
     void ISerializationCallbackReceiver.OnAfterDeserialize()
     {
@@ -17,4 +23,5 @@ public class OdinSerializedBehaviour : MonoBehaviour, ISerializationCallbackRece
     {
         UnitySerializationUtility.SerializeUnityObject(this, ref this.serializationData);
     }
+    #endregion
 }

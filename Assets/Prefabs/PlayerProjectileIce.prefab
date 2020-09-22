@@ -24,7 +24,7 @@ GameObject:
   - component: {fileID: 1815913499085032466}
   - component: {fileID: 5922190052892801950}
   - component: {fileID: 2704818390462202780}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: PlayerProjectileIce
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -87,7 +87,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5447224375741257466}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Visuals
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -119,7 +119,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4807166660741682855}
   - component: {fileID: 7349895335614987277}
-  m_Layer: 9
+  m_Layer: 8
   m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -166,11 +166,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 109416, guid: 4c41ec3ab37ac8b4c9490c39838a71d1, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 112944, guid: 4c41ec3ab37ac8b4c9490c39838a71d1, type: 3}
       propertyPath: m_Layer
-      value: 9
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 499462, guid: 4c41ec3ab37ac8b4c9490c39838a71d1, type: 3}
       propertyPath: m_LocalPosition.x
@@ -220,6 +220,10 @@ PrefabInstance:
       propertyPath: m_audioClip
       value: 
       objectReference: {fileID: 8300000, guid: 2722086750a69aa4289a792be804c60b, type: 3}
+    - target: {fileID: 19894380, guid: 4c41ec3ab37ac8b4c9490c39838a71d1, type: 3}
+      propertyPath: InitialModule.startSize.scalar
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4c41ec3ab37ac8b4c9490c39838a71d1, type: 3}
 --- !u!1 &467624554654349609 stripped

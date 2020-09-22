@@ -8,7 +8,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour
 {
-    public DimensionDependantVisuals visualsParent;
+    //public DimensionDependantVisuals visualsParent;
 
     [Space]
     public float dimensionSwitchCooldown;
@@ -17,7 +17,7 @@ public class Player : MonoBehaviour
     public float boostDuration;
     public float boostCooldown;
     public DimensionDependantVisuals boostParticlesParents;
-
+    public AudioSource boostSound;
     public float normalSpeed = 25f;
     public float stoppingPower = 1f;
     public float accelerationSpeed = 45f;
@@ -27,6 +27,9 @@ public class Player : MonoBehaviour
     public float rotationSpeed = 2.0f;
     public float cameraSmooth = 4f;
     public RectTransform crosshairTexture;
+
+    public Image fireWeaponHighlight;
+    public Image iceWeaponHighlight;
     public Image fireWeaponFill;
     public Image iceWeaponFill;
     public Image levelTimerFill;
@@ -54,7 +57,6 @@ public class Player : MonoBehaviour
     private float _boostCooldownTimer;
     private bool _boostIsInCooldown;
     private bool _isDimensionSwitchOnCooldown;
-    private float _switchWeaponDimensionStickyTimer;
     private Color _switchDimensionFillColor;
 
     private void Start()
@@ -66,21 +68,12 @@ public class Player : MonoBehaviour
         _defaultRotation = spaceshipRoot.localEulerAngles;
         _rotationZ = _defaultRotation.z;
 
-        //Cursor.lockState = CursorLockMode.Locked;
-        //Cursor.visible = false;
         Damageable = GetComponent<Damageable>();
 
         Damageable.Death += Damageable_Death;
-
-        GameManager.Instance.DimensionSwitched += Instance_DimensionSwitched;
     }
 
-    private void Instance_DimensionSwitched(Dimension newActiveDimension)
-    {
-        visualsParent.SwitchVisuals(newActiveDimension);
-    }
-
-    private void Damageable_Death(bool onDimension = false, bool isPlayerDamage = false)
+    private void Damageable_Death(Damage damage)
     {
         Speed = 0;
         _rigidBody.isKinematic = true;
@@ -90,11 +83,27 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        for (int i = 0; i < 20; i++)
+        {
+            if (Input.GetKeyDown("joystick 1 button " + i))
+            {
+                print("joystick 1 button " + i);
+            }
+        }
+
         UpdateInputs();
     }
 
     private void UpdateInputs()
     {
+        if (Input.GetButtonDown("Submit"))
+        {
+            if (Damageable.IsDead)
+                GameManager.Instance.Reset();
+            else
+                GameManager.Instance.TogglePause();
+        }
+
         if (Damageable.IsDead)
             return;
 
@@ -111,16 +120,9 @@ public class Player : MonoBehaviour
 
     private void UpdateWeaponDimensionSwitch()
     {
-        if (Input.GetButton("Jump") && _switchWeaponDimensionStickyTimer <= 0)
+        if (Input.GetButtonDown("Jump"))
         {
             SwitchWeaponDimension();
-
-            _switchWeaponDimensionStickyTimer = switchWeaponDimensionStickyTime;
-        }
-
-        if (_switchWeaponDimensionStickyTimer > 0)
-        {
-            _switchWeaponDimensionStickyTimer -= Time.deltaTime;
         }
     }
 
@@ -227,7 +229,10 @@ public class Player : MonoBehaviour
         }
 
         UpdateWeaponUI(fireWeapon, fireWeaponFill);
+        fireWeaponHighlight.enabled = _weaponDimension == Dimension.Fire;
+
         UpdateWeaponUI(iceWeapon, iceWeaponFill);
+        iceWeaponHighlight.enabled = _weaponDimension == Dimension.Ice;
     }
 
     private void UpdateWeaponUI(Weapon weapon, Image fillImage)
@@ -264,8 +269,8 @@ public class Player : MonoBehaviour
     private void UpdateCameraFollow()
     {
         //Camera follow
-        mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPosition.position, Time.deltaTime * cameraSmooth);
-        mainCamera.transform.rotation = Quaternion.Lerp(mainCamera.transform.rotation, cameraPosition.rotation, Time.deltaTime * cameraSmooth);
+        //mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPosition.position, Time.deltaTime * cameraSmooth);
+        //mainCamera.transform.rotation = Quaternion.Lerp(mainCamera.transform.rotation, cameraPosition.rotation, Time.deltaTime * cameraSmooth);
     }
 
     private void UpdateMovement()
@@ -310,7 +315,7 @@ public class Player : MonoBehaviour
         if ((Input.GetButton("JR") || Input.GetButton("L2")) && !_isBoosting && !_boostIsInCooldown)
         {
             _isBoosting = true;
-
+            boostSound.Play();
             _boostTimer = 0;
             _boostCooldownTimer = boostCooldown;
         }

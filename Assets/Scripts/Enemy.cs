@@ -19,7 +19,7 @@ public class Enemy : MonoBehaviour
 
     private void Start()
     {
-        _target = FindObjectOfType<Player>().transform;
+        _target = GameManager.Instance.Player.transform;
         Damageable = GetComponent<Damageable>();
         _collider = GetComponentInChildren<Collider>();
 
@@ -53,12 +53,15 @@ public class Enemy : MonoBehaviour
         return GameManager.Instance.ActiveDimension == OriginDimension;
     }
 
-    private void Damageable_Death(bool onDimension = false, bool isPlayerDamage = false)
+    private void Damageable_Death(Damage damage)
     {
-        if (!onDimension)
-            ScoreValue *= 2;
+        if (damage.IsPlayerDamage)
+        {
+            if (!damage.OnDimension)
+                ScoreValue *= 2;
 
-        GameManager.Instance.ScorePoints(ScoreValue);
+            GameManager.Instance.ScorePoints(ScoreValue);
+        }
 
         EnemySpawner.RemoveEnemy(this);
 
@@ -70,7 +73,7 @@ public class Enemy : MonoBehaviour
         Player player = other.gameObject.GetComponentInParent<Player>();
         if (player)
         {
-            player.Damageable.ApplyDamage(Mathf.Infinity);
+            player.Damageable.ApplyDamage(new Damage(Mathf.Infinity));
         }
     }
 }
