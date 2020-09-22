@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -13,9 +14,12 @@ public class Enemy : MonoBehaviour
     public Dimension OriginDimension { get; set; }
     public Boid Boid { get; private set; }
     public int ScoreValue { get; set; }
+    public bool IsImmuneToBorder { get; set; } = true;
 
     private Transform _target;
     private Collider _collider;
+    private float _immuneToBorderTimer;
+
 
     private void Start()
     {
@@ -33,6 +37,16 @@ public class Enemy : MonoBehaviour
     private void Update()
     {
         UpdateVisuals();
+
+        UpdateImmuneToBorder();
+    }
+
+    private void UpdateImmuneToBorder()
+    {
+        _immuneToBorderTimer += Time.deltaTime;
+
+        if (_immuneToBorderTimer >= 1f)
+            IsImmuneToBorder = false;
     }
 
     private void UpdateVisuals()
