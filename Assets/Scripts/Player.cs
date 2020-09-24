@@ -166,9 +166,7 @@ public class Player : MonoBehaviour
 
     private void UpdateShoot()
     {
-        float r2Value = Input.GetAxis("R2");
-
-        if (r2Value >= 0f)
+        if(Input.GetButton("R2"))
         {
             if (_weaponDimension == Dimension.Fire)
                 fireWeapon.TryShoot(true);
