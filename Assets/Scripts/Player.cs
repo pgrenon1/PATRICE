@@ -21,10 +21,11 @@ public class Player : MonoBehaviour
     public float normalSpeed = 25f;
     public float stoppingPower = 1f;
     public float accelerationSpeed = 45f;
+    public float brakingRotationSpeed = 3f;
     public Transform cameraPosition;
     public Camera mainCamera;
     public Transform spaceshipRoot;
-    public float rotationSpeed = 2.0f;
+    public float rotationSpeed = 2f;
     public float cameraSmooth = 4f;
     public RectTransform crosshairTexture;
 
@@ -58,6 +59,7 @@ public class Player : MonoBehaviour
     private bool _boostIsInCooldown;
     private bool _isDimensionSwitchOnCooldown;
     private Color _switchDimensionFillColor;
+    private float _rotationSpeed;
 
     private void Start()
     {
@@ -166,7 +168,7 @@ public class Player : MonoBehaviour
     {
         float r2Value = Input.GetAxis("R2");
 
-        if (r2Value != -1)
+        if (r2Value >= 0f)
         {
             if (_weaponDimension == Dimension.Fire)
                 fireWeapon.TryShoot(true);
@@ -312,16 +314,23 @@ public class Player : MonoBehaviour
 
     private void UpdateAcceleration()
     {
-        if ((Input.GetButton("JR") || Input.GetButton("L2")) && !_isBoosting && !_boostIsInCooldown)
+        if ((Input.GetButton("JR") || Input.GetButtonDown("L2")) && !_isBoosting && !_boostIsInCooldown)
         {
             _isBoosting = true;
             boostSound.Play();
             _boostTimer = 0;
             _boostCooldownTimer = boostCooldown;
+            _rotationSpeed = rotationSpeed;
+        }
+        else if (Input.GetButton("Fire3"))
+        {
+            Speed = Mathf.Lerp(Speed, 0, Time.deltaTime * stoppingPower);
+            _rotationSpeed = brakingRotationSpeed;
         }
         else
         {
             Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
+            _rotationSpeed = rotationSpeed;
         }
     }
 }

@@ -292,12 +292,12 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Intensity: 1
-  m_Range: 285.82947
+  m_Range: 5
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 1
+    m_Type: 2
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -637,7 +637,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 657837582097958432}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.00000023841858, y: 3.17, z: -11.66}
+  m_LocalPosition: {x: 0.00000071525574, y: 3.17, z: -11.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 9100176019165844091}
@@ -665,9 +665,9 @@ MonoBehaviour:
   m_LookAt: {fileID: 0}
   m_Follow: {fileID: 7323345192835891839}
   m_Lens:
-    FieldOfView: 60
+    FieldOfView: 80
     OrthographicSize: 5
-    NearClipPlane: 0.3
+    NearClipPlane: 0.001
     FarClipPlane: 1000
     Dutch: 0
     LensShift: {x: 0, y: 0}
@@ -765,11 +765,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TrackedObjectOffset: {x: 0, y: 3, z: 0}
   m_LookaheadTime: 0.1
-  m_LookaheadSmoothing: 0
+  m_LookaheadSmoothing: 9.4
   m_LookaheadIgnoreY: 0
-  m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_XDamping: 0.8
+  m_YDamping: 0.8
+  m_ZDamping: 1.1
   m_TargetMovementOnly: 1
   m_ScreenX: 0.5
   m_ScreenY: 0.5
@@ -778,8 +778,8 @@ MonoBehaviour:
   m_DeadZoneHeight: 0.174
   m_DeadZoneDepth: 0
   m_UnlimitedSoftZone: 0
-  m_SoftZoneWidth: 0.497
-  m_SoftZoneHeight: 0.456
+  m_SoftZoneWidth: 0.378
+  m_SoftZoneHeight: 0.419
   m_BiasX: 0
   m_BiasY: 0.00000084545593
   m_CenterOnActivate: 1
@@ -1546,7 +1546,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 1
   magazineSize: 15
-  rechargeRate: 1
+  rechargeRate: 2
   dimension: 0
   projectilePrefab: {fileID: 5922190052892801950, guid: d9e3158d31849be45ae0925f880b5246,
     type: 3}
@@ -1555,7 +1555,7 @@ MonoBehaviour:
   minTimeBetweenShots: 0.2
   layerMask:
     serializedVersion: 2
-    m_Bits: 823
+    m_Bits: 311
 --- !u!1 &6421966911660152644
 GameObject:
   m_ObjectHideFlags: 0
@@ -1765,6 +1765,7 @@ MonoBehaviour:
   normalSpeed: 50
   stoppingPower: 1
   accelerationSpeed: 350
+  brakingRotationSpeed: 3
   cameraPosition: {fileID: 7323345192451816960}
   mainCamera: {fileID: 7323345191890334983}
   spaceshipRoot: {fileID: 7323345192835891839}
@@ -1841,7 +1842,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7323345191890334981}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.00000023841858, y: -0.17999983, z: -4.24}
+  m_LocalPosition: {x: 0.00000071525574, y: -0.17999983, z: -4.24}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 7323345192451816960}
@@ -1870,9 +1871,9 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.01
   far clip plane: 1000
-  field of view: 60
+  field of view: 80
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -2326,7 +2327,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 1
   magazineSize: 15
-  rechargeRate: 1
+  rechargeRate: 2
   dimension: 1
   projectilePrefab: {fileID: 5922190052892801950, guid: 60d1c78d22bf1e744bfeab34ce3b4cd0,
     type: 3}
@@ -2335,7 +2336,7 @@ MonoBehaviour:
   minTimeBetweenShots: 0.2
   layerMask:
     serializedVersion: 2
-    m_Bits: 823
+    m_Bits: 311
 --- !u!1 &8546492539998178550
 GameObject:
   m_ObjectHideFlags: 0
