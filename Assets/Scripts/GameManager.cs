@@ -2,7 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.Rendering.PostProcessing;
 
 public class GameManager : OdinserializedSingletonBehaviour<GameManager>
@@ -27,27 +30,49 @@ public class GameManager : OdinserializedSingletonBehaviour<GameManager>
     public int LevelIndex { get; private set; }
     public Player Player { get; private set; }
     public bool IsPaused { get; private set; }
+    public GameControls GameControls { get; set; }
 
     public delegate void OnSwitchDimension(Dimension newActiveDimension);
     public event OnSwitchDimension DimensionSwitched;
 
     private PostProcessVolume _globalPPVolume;
 
+    private void ToggleGodMode()
+    {
+        IsGodMode = !IsGodMode;
+    }
+
     private void Start()
     {
+        GameControls = new GameControls();
+        GameControls.Gameplay.Enable();
+
+        GameControls.Gameplay.Select.performed += ctx => ToggleGodMode();
+        GameControls.Gameplay.Skip.performed += ctx => SkipLevel();
+        GameControls.Gameplay.Start.performed += ctx => PauseOrRestart();
+
         _globalPPVolume = gameObject.GetComponentInChildren<PostProcessVolume>();
+    }
+
+    private void PauseOrRestart()
+    {
+        if (Player != null && 
+            Player.Damageable.IsDead)
+            Reset();
+        else
+            TogglePause();
     }
 
     private void Update()
     {
         if (!GameIsStarted)
         {
-            UpdateStartGame();
+            var gamepadButtonPressed = Gamepad.current.allControls.Any(x => x is ButtonControl button && x.IsPressed() && !x.synthetic);
+            if (gamepadButtonPressed)
+                StartGame();
 
             return;
         }
-
-        UpdateCheats();
 
         UpdateLevelTimer();
 
@@ -60,26 +85,6 @@ public class GameManager : OdinserializedSingletonBehaviour<GameManager>
         {
             if (levelData.IsActive)
                 EnemyManager.Instance.UpdateSpawning(levelData);
-        }
-    }
-
-    private void UpdateCheats()
-    {
-        if (Input.GetKeyDown(KeyCode.F12))
-            IsGodMode = !IsGodMode;
-
-        if (Input.GetKeyDown(KeyCode.Return))
-            NextLevel();
-
-        if (Input.GetKeyDown(KeyCode.Space))
-            Reset();
-    }
-
-    private void UpdateStartGame()
-    {
-        if (Input.anyKeyDown)
-        {
-            StartGame();
         }
     }
 
@@ -109,7 +114,7 @@ public class GameManager : OdinserializedSingletonBehaviour<GameManager>
         Player = Instantiate(playerPrefab);
     }
 
-    public void NextLevel()
+    public void SkipLevel()
     {
         LevelIndex++;
 
@@ -170,7 +175,7 @@ public class GameManager : OdinserializedSingletonBehaviour<GameManager>
 
         if (LevelTimer <= 0)
         {
-            NextLevel();
+            SkipLevel();
 
             LevelTimer = timePerLevel;
         }

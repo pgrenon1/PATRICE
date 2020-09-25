@@ -1764,7 +1764,7 @@ MonoBehaviour:
   boostSound: {fileID: 2209826293821166277}
   normalSpeed: 50
   stoppingPower: 1
-  accelerationSpeed: 350
+  accelerationSpeed: 180
   brakingRotationSpeed: 3
   cameraPosition: {fileID: 7323345192451816960}
   mainCamera: {fileID: 7323345191890334983}

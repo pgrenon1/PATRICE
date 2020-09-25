@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Player : MonoBehaviour
@@ -59,7 +60,23 @@ public class Player : MonoBehaviour
     private bool _boostIsInCooldown;
     private bool _isDimensionSwitchOnCooldown;
     private Color _switchDimensionFillColor;
-    private float _rotationSpeed;
+    private PlayerControls _playerControls;
+    private bool _isShooting;
+    private bool _isBraking;
+
+    private void Awake()
+    {
+        _playerControls = new PlayerControls();
+        _playerControls.Gameplay.Enable();
+
+        _playerControls.Gameplay.Shoot.performed += ctx => _isShooting = true;
+        _playerControls.Gameplay.Shoot.canceled += ctx => _isShooting = false;
+        _playerControls.Gameplay.SwitchWeapon.performed += ctx => SwitchWeaponDimension();
+        _playerControls.Gameplay.SwitchDimension.performed += ctx => SwitchDimension();
+        _playerControls.Gameplay.Boost.performed += ctx => Boost();
+        _playerControls.Gameplay.Brake.performed += ctx => _isBraking = true;
+        _playerControls.Gameplay.Brake.canceled += ctx => _isBraking = false;
+    }
 
     private void Start()
     {
@@ -77,6 +94,7 @@ public class Player : MonoBehaviour
 
     private void Damageable_Death(Damage damage)
     {
+        _playerControls.Disable();
         Speed = 0;
         _rigidBody.isKinematic = true;
 
@@ -85,46 +103,39 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-        for (int i = 0; i < 20; i++)
-        {
-            if (Input.GetKeyDown("joystick 1 button " + i))
-            {
-                print("joystick 1 button " + i);
-            }
-        }
-
         UpdateInputs();
     }
 
     private void UpdateInputs()
     {
-        if (Input.GetButtonDown("Submit"))
-        {
-            if (Damageable.IsDead)
-                GameManager.Instance.Reset();
-            else
-                GameManager.Instance.TogglePause();
-        }
-
         if (Damageable.IsDead)
             return;
 
-        UpdateShoot();
+        UpdateSpeed();
 
-        UpdateAcceleration();
-
-        UpdateDimensionSwitch();
-
-        UpdateWeaponDimensionSwitch();
+        UpdateDimensionSwitchCooldown();
 
         UpdateBoost();
+
+        UpdateShoot();
+
+        //UpdateBrake();
     }
 
-    private void UpdateWeaponDimensionSwitch()
+    private void UpdateShoot()
     {
-        if (Input.GetButtonDown("Jump"))
+        if (_isShooting)
+            TryShoot();
+    }
+
+    private void SwitchDimension()
+    {
+        if (!_isDimensionSwitchOnCooldown)
         {
-            SwitchWeaponDimension();
+            GameManager.Instance.SwitchDimension();
+
+            _isDimensionSwitchOnCooldown = true;
+            _dimensionSwitchCooldownTimer = dimensionSwitchCooldown;
         }
     }
 
@@ -140,19 +151,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void UpdateDimensionSwitch()
-    {
-        UpdateDimensionSwitchCooldown();
-
-        if (Input.GetButton("L1") && Input.GetButton("R1") && !_isDimensionSwitchOnCooldown)
-        {
-            GameManager.Instance.SwitchDimension();
-
-            _isDimensionSwitchOnCooldown = true;
-            _dimensionSwitchCooldownTimer = dimensionSwitchCooldown;
-        }
-    }
-
     private void UpdateDimensionSwitchCooldown()
     {
         if (_dimensionSwitchCooldownTimer > 0)
@@ -164,22 +162,17 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void UpdateShoot()
+    private void TryShoot()
     {
-        if(Input.GetButton("R2"))
-        {
-            if (_weaponDimension == Dimension.Fire)
-                fireWeapon.TryShoot(true);
-            else
-                iceWeapon.TryShoot(true);
-        }
+        if (_weaponDimension == Dimension.Fire)
+            fireWeapon.TryShoot(true);
+        else
+            iceWeapon.TryShoot(true);
     }
 
     private void FixedUpdate()
     {
         UpdateMovement();
-
-        UpdateCameraFollow();
 
         UpdateRotation();
 
@@ -243,18 +236,11 @@ public class Player : MonoBehaviour
     private void UpdateRotation()
     {
         //Rotation
-        float rotationZTmp = Input.GetAxis("RightHorizontal");
-        //if (Input.GetKey(KeyCode.A))
-        //{
-        //    rotationZTmp = 1;
-        //}
-        //else if (Input.GetKey(KeyCode.D))
-        //{
-        //    rotationZTmp = -1;
-        //}
+        float rotationZTmp = _playerControls.Gameplay.RightJoystick.ReadValue<Vector2>().x;
 
-        _xSmooth = Mathf.Lerp(_xSmooth, Input.GetAxis("Horizontal") * rotationSpeed, Time.deltaTime * cameraSmooth);
-        _YSmooth = Mathf.Lerp(_YSmooth, Input.GetAxis("Vertical") * rotationSpeed, Time.deltaTime * cameraSmooth);
+        Vector2 leftJoystick = _playerControls.Gameplay.LeftJoystick.ReadValue<Vector2>();
+        _xSmooth = Mathf.Lerp(_xSmooth, leftJoystick.x * (_isBraking ? brakingRotationSpeed : rotationSpeed), Time.deltaTime * cameraSmooth);
+        _YSmooth = Mathf.Lerp(_YSmooth, leftJoystick.y * (_isBraking ? brakingRotationSpeed : rotationSpeed), Time.deltaTime * cameraSmooth);
 
         Quaternion localRotation = Quaternion.Euler(-_YSmooth, _xSmooth, -rotationZTmp * rotationSpeed);
         _lookRotation = _lookRotation * localRotation;
@@ -264,13 +250,6 @@ public class Player : MonoBehaviour
         _rotationZ = Mathf.Clamp(_rotationZ, -45, 45);
         spaceshipRoot.transform.localEulerAngles = new Vector3(_defaultRotation.x, _defaultRotation.y, _rotationZ);
         _rotationZ = Mathf.Lerp(_rotationZ, _defaultRotation.z, Time.deltaTime * cameraSmooth);
-    }
-
-    private void UpdateCameraFollow()
-    {
-        //Camera follow
-        //mainCamera.transform.position = Vector3.Lerp(mainCamera.transform.position, cameraPosition.position, Time.deltaTime * cameraSmooth);
-        //mainCamera.transform.rotation = Quaternion.Lerp(mainCamera.transform.rotation, cameraPosition.rotation, Time.deltaTime * cameraSmooth);
     }
 
     private void UpdateMovement()
@@ -289,8 +268,6 @@ public class Player : MonoBehaviour
 
         if (_isBoosting)
         {
-            Speed = Mathf.Lerp(Speed, accelerationSpeed, Time.deltaTime * 3);
-
             _boostTimer += Time.deltaTime;
 
             if (_boostTimer >= boostDuration)
@@ -310,26 +287,33 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void UpdateAcceleration()
+    private void Boost()
     {
-        if ((Input.GetButton("JR") || Input.GetButtonDown("L2")) && !_isBoosting && !_boostIsInCooldown)
+        if (!_isBoosting && !_boostIsInCooldown)
         {
             _isBoosting = true;
             boostSound.Play();
             _boostTimer = 0;
             _boostCooldownTimer = boostCooldown;
-            _rotationSpeed = rotationSpeed;
         }
-        else if (Input.GetButton("Fire3"))
-        {
+    }
+
+    //private void UpdateBrake()
+    //{
+    //    if (_isBraking && !_isBoosting)
+    //    {
+    //        Speed = Mathf.Lerp(Speed, 0, Time.deltaTime * stoppingPower);
+    //    }
+    //}
+
+    private void UpdateSpeed()
+    {
+        if (_isBoosting)
+            Speed = Mathf.Lerp(Speed, accelerationSpeed, Time.deltaTime * 3);
+        else if (_isBraking)
             Speed = Mathf.Lerp(Speed, 0, Time.deltaTime * stoppingPower);
-            _rotationSpeed = brakingRotationSpeed;
-        }
         else
-        {
             Speed = Mathf.Lerp(Speed, normalSpeed, Time.deltaTime * 10);
-            _rotationSpeed = rotationSpeed;
-        }
     }
 }
 
